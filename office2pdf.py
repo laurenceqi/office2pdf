@@ -10,13 +10,15 @@
 
 import sys, os
 from win32com.client import Dispatch, constants, gencache
+
+
 def usage():
 	sys.stderr.write ("doc2pdf.py input [output]")
 	sys.exit(2)
 
 #powerpoint convert pdf file
 def ppt2pdf(input,output):
-  p = Dispatch("PowerPoint.Application")
+  # p = Dispatch("PowerPoint.Application")
   p.Visible = True
   try:
     print input
@@ -30,11 +32,12 @@ def ppt2pdf(input,output):
     print 'powerpoint file convert failed!'
     return 1
   finally:
-    p.Quit()
+    # p.Quit()
+    pass
 
 #word convert pdf file
 def doc2pdf(input, output):
-  w = Dispatch("Word.Application")
+  
   try:
     doc = w.Documents.Open(input, ReadOnly = 1)
     doc.ExportAsFixedFormat(output, constants.wdExportFormatPDF, 
@@ -45,10 +48,11 @@ def doc2pdf(input, output):
     print 'word file convert failed!'
     return 1
   finally:
-    w.Quit(constants.wdDoNotSaveChanges)
+    # w.Quit(constants.wdDoNotSaveChanges)
+    pass
 #excel convert pdf file
 def excel2pdf(input, output):
-  excelSource = Dispatch("Excel.Application")
+  
   try:
     excel = excelSource.Workbooks.Open(input,ReadOnly = 1)
     xlTypePDF = 0;
@@ -61,6 +65,7 @@ def excel2pdf(input, output):
     return 1
   finally:
     excel.Quit()
+    
 
 # Generate all the support we can.
 def GenerateSupport():
@@ -69,34 +74,42 @@ def GenerateSupport():
   gencache.EnsureModule('{00020905-0000-0000-C000-000000000046}', 0, 8, 4)
 
 def main():
-  if (len(sys.argv) == 2):
-    input = sys.argv[1]
-    output = os.path.splitext(input)[0]+'.pdf'
-  elif (len(sys.argv) == 3):
-    input = sys.argv[1]
-    output = sys.argv[2]
-  else:
-    usage()
-  if (not os.path.isabs(input)):
-    input = os.path.abspath(input)
-  if (not os.path.isabs(output)):
-    output = os.path.abspath(output)
+  # if (len(sys.argv) == 2):
+  #   input = sys.argv[1]
+  #   output = os.path.splitext(input)[0]+'.pdf'
+  # elif (len(sys.argv) == 3):
+  #   input = sys.argv[1]
+  #   output = sys.argv[2]
+  # else:
+  #   usage()
+  # if (not os.path.isabs(input)):
+  #   input = os.path.abspath(input)
+  # if (not os.path.isabs(output)):
+  #   output = os.path.abspath(output)
+  p = Dispatch("PowerPoint.Application")
+  w = Dispatch("Word.Application")
+  excelSource = Dispatch("Excel.Application")
   try:
     GenerateSupport()
-    shortLastName = input[-3:]
-    longLastName = input[-4:]
-    if shortLastName == 'xls' or longLastName == 'xlsx':
-      rc = excel2pdf(input, output)
-    elif shortLastName == 'doc' or longLastName == 'docx':
-      rc = doc2pdf(input,output)
-    elif shortLastName == 'ppt' or longLastName == 'pptx':
-      rc = ppt2pdf(input,output)
-    return rc
+    for root, dirs, files in os.walk(os.getcwd()):
+      for file in files:
+        input = os.path.join(root, file);
+        output = os.path.splitext(input)[0]+'.pdf'
+        shortLastName = input[-3:]
+        longLastName = input[-4:]
+        if shortLastName == 'xls' or longLastName == 'xlsx':
+          rc = excel2pdf(input, output)
+        elif shortLastName == 'doc' or longLastName == 'docx':
+          rc = doc2pdf(input,output)
+        elif shortLastName == 'ppt' or longLastName == 'pptx':
+          rc = ppt2pdf(input,output)
+        
   except:
     return -1
+  finally:
+    p.Quit()
+    w.Quit(constants.wdDoNotSaveChanges)
 
 if __name__=='__main__':
 	rc = main()
-	if rc:
-		sys.exit(rc)
-	sys.exit(0)
+	
