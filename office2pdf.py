@@ -10,7 +10,9 @@
 
 import sys, os
 from win32com.client import Dispatch, constants, gencache
-
+p = Dispatch("PowerPoint.Application")
+w = Dispatch("Word.Application")
+excelSource = Dispatch("Excel.Application")
 
 def usage():
 	sys.stderr.write ("doc2pdf.py input [output]")
@@ -44,7 +46,8 @@ def doc2pdf(input, output):
       Item = constants.wdExportDocumentWithMarkup, CreateBookmarks = constants.wdExportCreateHeadingBookmarks)
     print 'word file convert successful!'
     return 0
-  except:
+  except Exception as e:
+    print e.args
     print 'word file convert failed!'
     return 1
   finally:
@@ -64,8 +67,8 @@ def excel2pdf(input, output):
     print 'excel file convert failed!'
     return 1
   finally:
-    excel.Quit()
-    
+    # excel.Quit()
+    pass
 
 # Generate all the support we can.
 def GenerateSupport():
@@ -86,12 +89,11 @@ def main():
   #   input = os.path.abspath(input)
   # if (not os.path.isabs(output)):
   #   output = os.path.abspath(output)
-  p = Dispatch("PowerPoint.Application")
-  w = Dispatch("Word.Application")
-  excelSource = Dispatch("Excel.Application")
+  
   try:
     GenerateSupport()
     for root, dirs, files in os.walk(os.getcwd()):
+      print root
       for file in files:
         input = os.path.join(root, file);
         output = os.path.splitext(input)[0]+'.pdf'
@@ -104,11 +106,14 @@ def main():
         elif shortLastName == 'ppt' or longLastName == 'pptx':
           rc = ppt2pdf(input,output)
         
-  except:
+  except Exception as e:
+    print "Error happened!"
+    raise
     return -1
   finally:
     p.Quit()
     w.Quit(constants.wdDoNotSaveChanges)
+    excelSource.Quit()
 
 if __name__=='__main__':
 	rc = main()
